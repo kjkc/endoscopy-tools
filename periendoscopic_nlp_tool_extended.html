@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Periendoscopic Antithrombotic Management Advisor</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f0f0f5; }
+        h1 { color: #003366; }
+        .section { margin-bottom: 30px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        label { font-size: 16px; display: block; margin-bottom: 10px; }
+        textarea { width: 100%; height: 100px; font-size: 16px; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        .button { margin-top: 20px; background-color: #005999; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; }
+        .button:hover { background-color: #004377; }
+        .output { margin-top: 20px; font-size: 16px; color: #333; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<h1>Periendoscopic Antithrombotic Management Advisor</h1>
+
+<div class="section">
+    <label for="inputText">Enter your scenario (e.g., "ERCP with sphincterotomy on Eliquis for AF"):</label>
+    <textarea id="inputText" placeholder="Type your clinical scenario here..."></textarea>
+    <button class="button" onclick="analyzeInput()">Get Recommendation</button>
+    <div id="output" class="output"></div>
+</div>
+
+<script>
+function analyzeInput() {
+    let text = document.getElementById("inputText").value.toLowerCase();
+    let output = "";
+
+    // Identify medication
+    let isWarfarin = text.includes("warfarin");
+    let isDOAC = text.includes("eliquis") || text.includes("apixaban") ||
+                 text.includes("xarelto") || text.includes("rivaroxaban") ||
+                 text.includes("dabigatran") || text.includes("edoxaban");
+    let isASA = text.includes("aspirin");
+    let isP2Y12 = text.includes("clopidogrel") || text.includes("prasugrel") || text.includes("ticagrelor");
+    let isHeparin = text.includes("heparin") || text.includes("ufh") || text.includes("unfractionated");
+    let isLMWH = text.includes("lovenox") || text.includes("enoxaparin") || text.includes("lmwh");
+    let isOralAntiplatelet = text.includes("antiplatelet") || text.includes("oral agent");
+
+    // Identify procedure risk
+    let isHighRisk = text.includes("ercp with sphincterotomy") ||
+                     text.includes("emr") || text.includes("esd") ||
+                     text.includes("peg") || text.includes("ampullectomy") ||
+                     text.includes("polypectomy") || text.includes("dilation") ||
+                     text.includes("hemostasis") || text.includes("eus with fna") ||
+                     text.includes("large polyp") || text.includes("tumor ablation") ||
+                     text.includes("pseudocyst") || text.includes("variceal ligation");
+
+    let isLowRisk = text.includes("biopsy") || text.includes("egd") || 
+                    text.includes("colonoscopy") || text.includes("capsule") ||
+                    text.includes("enteroscopy") || text.includes("sigmoidoscopy") ||
+                    text.includes("apc") || text.includes("diagnostic") ||
+                    text.includes("ercp without sphincterotomy");
+
+    // Identify thromboembolic risk
+    let isHighTE = text.includes("mechanical valve") || text.includes("recent vte") ||
+                   text.includes("recent stroke") || text.includes("recent tia") || text.includes("recent stent") ||
+                   text.includes("recent mi") || text.includes("recent myocardial infarction") ||
+                   text.includes("angina") || text.includes("unstable angina");
+
+    // Compose recommendation
+    if (isHeparin) {
+        if (isHighRisk) {
+            output = "High-risk procedure with unfractionated heparin: Hold 4–6 hours prior. Resume after adequate hemostasis. Monitor aPTT if bridging.";
+        } else {
+            output = "Low-risk procedure with heparin: May proceed with minimal interruption. Individualize based on thrombotic risk.";
+        }
+    } else if (isLMWH) {
+        if (isHighRisk) {
+            output = "High-risk procedure with LMWH: Hold 24 hours prior if therapeutic dose. Resume 48–72 hours after if no bleeding. No bridging unless high thrombotic risk.";
+        } else {
+            output = "Low-risk procedure with LMWH: Hold 12–24 hours prior. Resume the next day if hemostasis is confirmed.";
+        }
+    } else if (isOralAntiplatelet) {
+        if (isHighRisk) {
+            output = "High-risk procedure with oral antiplatelet: Hold 5–7 days prior if monotherapy. Continue aspirin if on dual therapy. Resume once hemostasis is assured.";
+        } else {
+            output = "Low-risk procedure with oral antiplatelet: Generally safe to continue. Monitor for minor bleeding.";
+        }
+    } else if (isDOAC) {
+        if (isHighRisk) {
+            output = "High bleeding risk procedure with DOAC: Hold 2–4 days before (based on renal function). Resume 48–72h post-procedure. No bridging.";
+        } else if (isLowRisk) {
+            output = "Low bleeding risk procedure with DOAC: Hold ~24h before. Resume next day. No bridging.";
+        } else {
+            output = "DOAC detected. If high bleeding risk, hold 2–4 days; if low risk, hold ~24h. Adjust for renal function.";
+        }
+    } else if (isWarfarin) {
+        if (isHighRisk) {
+            if (isHighTE) {
+                output = "High bleeding risk with warfarin and high thromboembolic risk: Hold 5 days before. Consider bridging. Resume after hemostasis.";
+            } else {
+                output = "Hold warfarin 5 days before. No bridging needed. Resume after procedure.";
+            }
+        } else {
+            output = "Continue warfarin for low-risk procedure. Ensure INR is therapeutic.";
+        }
+    } else if (isASA) {
+        if (isHighRisk || isLowRisk) {
+            output = "Continue aspirin. Do not interrupt if used for secondary prevention.";
+        } else {
+            output = "Aspirin detected. Generally safe to continue unless primary prevention and high-risk procedure.";
+        }
+    } else if (isP2Y12) {
+        if (isHighRisk) {
+            output = "P2Y12 inhibitor with high-risk procedure: Hold 5–7 days before. Continue ASA if on dual therapy. Consult cardiology if recent stent.";
+        } else {
+            output = "P2Y12 inhibitor with low-risk procedure: Continue therapy. Continue ASA if on dual therapy.";
+        }
+    } else {
+        output = "Unable to identify medication or procedure clearly. Please clarify drug and procedure type.";
+    }
+
+    document.getElementById("output").innerText = output;
+}
+</script>
+
+</body>
+</html>
